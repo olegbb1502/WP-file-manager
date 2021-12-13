@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: File Manager plugin
-Description: A File Manager plugin to demonstrate wordpress functionality
+Description: A File Manager plugin for Wordpress that helps to operate with files and render them on the page
 Author: Anastasia Taran
 Version: 0.1
 */
