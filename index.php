@@ -54,6 +54,16 @@ function file_manager_init(){
      #filter-btn:hover {
         background-color: #00c4a7;
      }
+     #reset-btn {
+        background-color: #14322d;
+        border-color: transparent;
+        color: #fff;
+        margin-left: 30px;
+        height: 40px;
+        width: 150px;
+        cursor: pointer;
+        border-radius: 4px;
+     }
      .fa-upload:before {
         content: "\f093";
     }
@@ -88,13 +98,6 @@ function file_manager_init(){
     }
  </style>    
  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
-   <?php 
-global $wpdb;
-
-$table_name = "wp_diploms_archive";
-$myrows = $wpdb->get_results( "SELECT `id`,`year`,`category`,`autor`,`file` FROM ".$table_name);
-
-?>
 <h2 class="title">Filter records</h2>
 <form method="post" id="filter-wrapper" class="form-filter">
     <div class="col">    
@@ -124,7 +127,7 @@ $myrows = $wpdb->get_results( "SELECT `id`,`year`,`category`,`autor`,`file` FROM
         </div>
     </div>
     <button id="filter-btn" onclick="btnClick(event)">filter</button>
-    <!-- <button id="reset-btn" onclick="btnReset(event)">Reset</button> -->
+    <button id="reset-btn" onclick="btnReset(event)">Reset</button>
 </form>
 <script>
     function filter() {
@@ -157,7 +160,43 @@ $myrows = $wpdb->get_results( "SELECT `id`,`year`,`category`,`autor`,`file` FROM
                 }
         });
     }
+    function btnReset(e) {
+        e.preventDefault();
+        $.ajax({
+            method: 'POST',
+            type: 'POST',
+            data: { 
+                action: 'resetFilter',
+            },
+            url: '/wp-admin/admin-ajax.php',
+            dataType: "html",
+            success: function (data) {
+                // var d = JSON.parse(data);
+                let elem = document.querySelector('.table');
+                elem.innerHTML = data;
+                // console.log(data);
+                }
+        });
+    }
+    $(document).ready(function(){
+        $.ajax({
+            method: 'POST',
+            type: 'POST',
+            data: { 
+                action: 'resetFilter',
+            },
+            url: '/wp-admin/admin-ajax.php',
+            dataType: "html",
+            success: function (data) {
+                // var d = JSON.parse(data);
+                let elem = document.querySelector('.table');
+                elem.innerHTML = data;
+                // console.log(data);
+                }
+        });
+    });
 </script>
+
 <table class="table">
   <thead>
   <tr>
@@ -169,17 +208,7 @@ $myrows = $wpdb->get_results( "SELECT `id`,`year`,`category`,`autor`,`file` FROM
   </tr>
   </thead>
 <tbody>
-<?php 
-$total = 0;
-foreach ($myrows as $details) :?>
-  <tr class="item_row">
-        <td><?php echo $details->id; ?></td>
-        <td> <?php echo $details->year; ?></td>
-        <td> <?php echo $details->category; ?></td>
-        <td> <?php echo $details->autor;?></td>
-        <td> <?php echo $details->file; ?></td>
-  </tr>
-<?php endforeach;?>
+
 </tbody>
 </table>
     <form  method="post" enctype="multipart/form-data">
@@ -283,11 +312,6 @@ function test_handle_post(){
    values ('$year', '$category', '$autor', '$file')";
 // print_r($sql);
         $wpdb->query($sql);
-
-            // print_r($_POST);
-            // print_r($_FILES);
-            // print_r($uploaded);
-            // echo "File upload successful!";
         }
     }
 }
@@ -325,7 +349,45 @@ function filterDiploms(){
     die();
 }
 
+function getDiploms(){
+    global $wpdb;
+        $table_name = "wp_diploms_archive";
+        $myrows = $wpdb->get_results( "SELECT `id`,`year`,`category`,`autor`,`file` FROM ".$table_name);
+return $myrows;   
+}
+
+function paintTable(){
+    $myrows = getDiploms();
+    echo '<table class="table">
+    <thead>
+        <tr>
+            <th>ID </th>
+            <th>Year </th>
+            <th>Category </th>
+            <th>Autor </th>
+            <th>File </th>
+        </tr>
+    </thead>
+        <tbody>';
+             
+            foreach ($myrows as $details){
+                echo'<tr class="item_row">
+                        <td>'.$details->id.'</td>
+                        <td>'.$details->year.'</td>
+                        <td>'.$details->category.'</td>
+                        <td>'.$details->autor.'</td>
+                        <td>'.$details->file.'</td>
+                </tr>';
+                }
+       echo '</tbody>
+    </table>';        
+    die();
+}
+
 add_action('wp_ajax_nopriv_filter','filterDiploms');
 add_action('wp_ajax_filter','filterDiploms');
+
+add_action('wp_ajax_nopriv_resetFilter','paintTable');
+add_action('wp_ajax_resetFilter','paintTable');
 
 ?>
